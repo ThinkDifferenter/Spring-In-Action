@@ -20,3 +20,8 @@
 - a.实现系统关注点功能的代码将会重复出现在多个组件中。这意味着如果你要改动这些关注点的逻辑，必须修改各个模块中的相关实现。即使你把这样的关注点抽象为一个独立的模块，其他模块只是调用它的方法，但方法的调用还是会重复出现在各个模块中；
 - b.组件会因为那些与自身核心业务无关的代码而变得混乱。一个向地址簿增加地址条目的方法应该只关注如何添加地址，而不是应该关注它是不是安全的或者是否需要支持事物。
 
+8. bean的生命周期：Start->实例化-> 填充属性 ->调用BeanNameAware的setName()方法 ->调用BeanNameAware的setFacto()方法 ->调用ApplicationContextAware的setApplicationContext()方法 ->调用BeanPostProcessor的预初始化方法 ->调用InitializingBean的afterPropertiesSet()方法 ->调用自定义的初始化方法 ->调用BeanPostProcessor的初始化后方法 ->bean可以使用了 ->容器关闭 ->调用DisposiableBean的destroy()方法 ->调用自定义销毁方法 ->End
+
+9. spring boot大量依赖于自动配置技术，很大程度上减少了spring配置
+
+10. 
