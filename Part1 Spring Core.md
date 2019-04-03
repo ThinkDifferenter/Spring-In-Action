@@ -22,6 +22,27 @@
 
 8. bean的生命周期：Start->实例化-> 填充属性 ->调用BeanNameAware的setName()方法 ->调用BeanNameAware的setFacto()方法 ->调用ApplicationContextAware的setApplicationContext()方法 ->调用BeanPostProcessor的预初始化方法 ->调用InitializingBean的afterPropertiesSet()方法 ->调用自定义的初始化方法 ->调用BeanPostProcessor的初始化后方法 ->bean可以使用了 ->容器关闭 ->调用DisposiableBean的destroy()方法 ->调用自定义销毁方法 ->End
 
-9. spring boot大量依赖于自动配置技术，很大程度上减少了spring配置
+9. spring boot大量依赖于自动配置技术，很大程度上减少了spring配置。
 
-10. 
+10. 在spring中，对象无需自己查找或创建与其所关联的其他对象，相反，容器负责吧需要协作的对象引用赋予各个对象。
+
+11. 创建应用对象之间的协作关系的行为通常称为**装配**，这也是**依赖注入**的本质。
+
+12. spring具有非常大的灵活性，它提供了三种主要的装配机制：
+- a.在XML中进行显示的装配；
+- b.在Java中进行显示的装配；
+- c.隐式的bean发现机制和自动装配；
+我们建议尽可能的使用自动装配机制，显示的装配越少使用越好。
+
+13. spring从两个方面来实现自动装配：
+- a.**组件扫描（Component Scanning）**：spring会自动发现应用上下文中所创建的的bean；
+- b.**自动装配（autowiring）**：spring自动满足bean之间的依赖；
+组件扫描和自动装配组合在一起能将显示配置降低到最小。
+
+14. spring支持将@Named作为@Component注解的替代方式，在大多数场景中两者完全等效，不过@Named没有像@Component那样清楚的说明它是做什么的。
+
+15. 组件扫描和自动装配逻辑过程：声明接口compactDisc-> 创建接口接口compactDisc的实现类SgtPeppers并打上@Component注解-> 创建CDPlayerConfig配置类并打上@Configuration和@ComponentScan注解->创建单元测试类CDPlayerTest并在声明接口成员变量cd上打上@Autowired注解。
+
+16. 带有@Bean注解的方法可以采用任何必要的Java功能来产生bean实例，构造器和setter方法（构造注入和设值注入）只是@Bean方法的两个简单实例。
+
+17. 
