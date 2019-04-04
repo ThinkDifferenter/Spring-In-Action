@@ -45,4 +45,37 @@
 
 16. 带有@Bean注解的方法可以采用任何必要的Java功能来产生bean实例，构造器和setter方法（构造注入和设值注入）只是@Bean方法的两个简单实例。
 
-17. 
+17. 没有指定profile的bean始终都会创建，与激活哪个profile没有关系。
+
+18. 可以在根`<beans>`元素中嵌套定义`<beans>`元素，而不是为每个环境都创建一个profile XML文件，这能够将所有的profile bean定义到一个XML文件中。
+
+19. XML配置文件中嵌套定义`<beans>`实现所有的profile bean在一个文件中：
+```
+<beans>
+    <beans profile="dev">
+        ...
+    </beans>    
+
+    <beans profile="prod">
+        ...
+    </beans>
+    ...
+</beans>
+```
+
+20. spring在确定哪个profile处于激活状态时，需要依赖两个独立的属性：spring.profiles.active 和 spring.profiles.defualt。如果两者都没有设置的话，那么就没有profile被激活，因此只会创建那些没有定义在profile中的bean。注意到两个属性的profiles均为复数形式，这意味着你可以同时激活多个不相关的profile，中间用逗号隔开即可。
+
+21. 如果你希望一个或者多个bean只有在应用的类路径下包含特定的库时才创建，或者希望某个bean只有当另外某个特定的bean声明时才创建，或者要求某个特定的环境变量设置之后，才创建某个bean。spring4引入@Conditional注解，它可以用到带#Bean注解的方法上，如果计算的结果为true才创建该bean。
+
+22. 从spring4开始，对@Profile注解进行了重构，使其基于@Conditional和Condition实现，@Profile注解具体实现如下：
+```
+...(原注解)
+@Conditional(ProfileCondition.class)
+public @interface Profile(){
+    String[] value();
+}
+```
+
+23. 对于仅有一个确定的bean需要创建时，自动装配才是有效的。如果存在歧义，会阻碍spring自动装配属性、构造器参数或者方法参数，并抛出NoUniqueBeanDefinitionException。（如@Component注解打在接口上，但是该接口有多个实现类，在自动装配时存在歧义）
+
+24. 
