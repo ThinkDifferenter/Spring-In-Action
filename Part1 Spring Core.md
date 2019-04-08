@@ -34,6 +34,8 @@
 - c.隐式的bean发现机制和自动装配；
 我们建议尽可能的使用自动装配机制，显示的装配越少使用越好。
 
+***
+
 13. spring从两个方面来实现自动装配：
 - a.**组件扫描（Component Scanning）**：spring会自动发现应用上下文中所创建的的bean；
 - b.**自动装配（autowiring）**：spring自动满足bean之间的依赖；
@@ -78,4 +80,32 @@ public @interface Profile(){
 
 23. 对于仅有一个确定的bean需要创建时，自动装配才是有效的。如果存在歧义，会阻碍spring自动装配属性、构造器参数或者方法参数，并抛出NoUniqueBeanDefinitionException。（如@Component注解打在接口上，但是该接口有多个实现类，在自动装配时存在歧义）
 
-24. 
+24. 在声明bean的时候，可通过@Primary注解设置首选装配的bean，形式如下：
+```
+@Component
+@Primary
+public class IceCream implement Dessert{...} 
+
+or
+
+@Bean
+@Primary
+public Dessert Icecream(){
+    return new Icecream();
+}
+```
+不管你用什么方式来标识首选bean，但是对于多个首选bean的标识就会出现问题了。
+
+25. 利用@Autowired和@Qualifier注解设置bean装配限定 
+```
+@Autowired
+@Qualifier("iceCream")
+public void setDessert(Dessert dessert){
+    this.dessert = dessert;
+}
+
+// 组件扫描+自动装配时bean的ID为首字母小写的类名，不过这里的问题在于限定符与注入对象bean名称是耦合的，这意味着修改类的名称会使限定符失效。
+```
+26. 当使用自定义的@Qualifier注解是，最佳的实践是bean选择特征为描述性的术语，而不是随意的命名。
+
+27. 
