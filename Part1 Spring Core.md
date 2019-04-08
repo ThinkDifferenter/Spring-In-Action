@@ -65,6 +65,8 @@
 </beans>
 ```
 
+***
+
 20. spring在确定哪个profile处于激活状态时，需要依赖两个独立的属性：spring.profiles.active 和 spring.profiles.defualt。如果两者都没有设置的话，那么就没有profile被激活，因此只会创建那些没有定义在profile中的bean。注意到两个属性的profiles均为复数形式，这意味着你可以同时激活多个不相关的profile，中间用逗号隔开即可。
 
 21. 如果你希望一个或者多个bean只有在应用的类路径下包含特定的库时才创建，或者希望某个bean只有当另外某个特定的bean声明时才创建，或者要求某个特定的环境变量设置之后，才创建某个bean。spring4引入@Conditional注解，它可以用到带#Bean注解的方法上，如果计算的结果为true才创建该bean。
@@ -108,4 +110,8 @@ public void setDessert(Dessert dessert){
 ```
 26. 当使用自定义的@Qualifier注解是，最佳的实践是bean选择特征为描述性的术语，而不是随意的命名。
 
-27. 
+27. java不会允许在同一个条目上重复出现相同类型的多个注解。（Java 8允许出现重读的注解，只要这一个注解本身在定义的时候带有@Repeatable注解就可以了，spring的@Qualifier注解并没有带上这个注解）
+
+***
+
+
