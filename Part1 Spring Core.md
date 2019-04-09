@@ -114,4 +114,61 @@ public void setDessert(Dessert dessert){
 
 ***
 
+28. 在默认的情况下，spring所创建的bean都是单例的，即不管给定的bean被注入到其他bean多少次，都是同一个实例。
 
+29. 大多数情况下，单例的bean都能满足需求，不过当你所使用的类是易变的，因为对象会被污染，稍后重用的时候会出现意想不到的问题。
+
+30. spring定义了多种作用域，可以基于这些作用域创建bean：
+- a.单例（Singleton）:在整个应用中，只创建bean的一个实例；
+- b.原型（Prototype）：每次注入或者通过spring应用上下文获取的时候，都会创建新的bean实例；
+- c.会话（Session）：在web应用中，为每个会话创建一个bean的实例；
+- d.请求（Request）：在web应用中，为每个请求创建一个bean的实例；
+
+31. 通过@Scope与@Bean和@Component实现bean作用域的设置：
+```
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class NotePad(){
+    ....
+}
+
+or 
+
+@Bean
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public NotePad notepad(){
+    return new NotePad();
+}
+```
+
+32. 使用会话和请求作用域
+```
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_SESSION,
+    proxyMode=ScopeProxyMode.INTERFACES)
+public ShoppingCart cart(){...}
+
+proxyMode=ScopeProxyMode.INTERFACES 这个属性解决了将会话或请求作用域的bean注入到单例bean中所遇到的问题。
+```
+
+33. 运行时注入bean的属性或者构造器参数：为了减少硬编码，spring提供两种运行时求值得方法
+- a.属性占位符
+- b.spring 表达式语言
+
+34. 属性占位符
+```
+@Configuration
+@PropertySource("classpath:...配置文件路径")
+public class ExpressiveConfig{
+    @AutoWired
+    Environment env;
+
+    public BlankDisc disc(){
+        return new BlankDisc(
+            env.getProperty("disc.title");
+            env.getProperty("disc.artist");   
+        )
+    }
+}
+
+```
