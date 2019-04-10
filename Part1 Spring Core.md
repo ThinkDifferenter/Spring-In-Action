@@ -172,3 +172,68 @@ public class ExpressiveConfig{
 }
 
 ```
+
+35. 属性占位符
+```
+public BlankDisc(@Value(${disc.title}) String title,@Value(${disc.artist}) String artist){
+    this.artist=disc.artist;
+    this.title=disc.title;
+}
+
+// 解析外部属性能够将值得处理推迟到运行时，但是它的关注点在于根据名称解析来自于spring Environment和属性源的值
+```
+
+36. SpEL(Spring Expression Language)是一种强大的和简洁的方式将值装配到bean属性和构造器中，在这个过程中所使用的表达式会在运行时计算得到值，SpEL特性包括以下几点：
+- a.使用bean的ID来引用bean；
+- b.调用方法和访问对象的属性；
+- c.对值进行计算、关系和逻辑运算；
+- d.正则表达式匹配；
+- e.集合操作
+
+37. SpEL使用样例：
+- a.表示字面值：
+```
+#{3.14159} ,#{6.18E4}, #{'hello worlds'}, #{false}   
+```
+- b.引用bean、属性和方法
+```
+#{sgtPeppers}, #{sgtPeppers.title}, #{artistSelector.selectArtist()} 
+```
+- c.在表达式中使用类型
+```
+//如果在SpEL中访问类作用域的方法和常亮的话，要依赖T()这个关键的运算符
+T(java.lang.Math)
+
+//T()运算符真正的意义在于它能够方位目标类型的静态方法和常亮。
+T(java.lang.Math).PI
+T(java.lang.Math).random()
+```
+- d.SpEL运算符
+```
+//计算圆的周长
+#{2*sT(java.lang.Math).PI*cicrcle.radius}
+
+//数值型的判断
+#{counter.total == 100}
+
+or
+
+//文本型的判断
+#{counter.total eq 100}
+```
+- e.计算正则表达式
+```
+//在文本处理时检查某种模式的存在非常有用
+#{adim.email matches '[...正则表达式]'}
+```
+- f.计算集合
+```
+//定位集合中的摸个元素(下标从零开始)
+#{jukebox.song[4].title}
+#{'hello world'[3]}
+
+#{jukebox.song[T(java.lang.Math).random()*jokebox.song.size()].title}
+```
+
+***
+
