@@ -248,7 +248,7 @@ or
 - d.异常通知(After-throwing):在目标方法成功返回前调用通知；对应注解：@AfterThrowing)
 - e.环绕通知(Around)：通知包裹了呗通知的方法，在被通知方法调用之前和之后执行自定义的行为。对应注解：@Around
 
-41. 织入：把切面应用到目标对象并创建新的代理对象的过程，新的代理类执行额外的切面逻辑，分为以下三种织入方式：
+41. 织入：把切面应用到目标对象并创建新的代理对象的过程，新的代理类执行额外的切面逻辑，**切面是通知和切点的组合**，分为以下三种织入方式：
 - a.编译时期织入
 - b.类加载时期织入
 - c.运行时期织入
@@ -261,4 +261,19 @@ or
 public void performance() {} //切点名称
 ```
 
-44. 
+44. 当通知方法逻辑需要切点参数作为自身参数时可通过如下方式定义切点：
+```
+//定义切点
+@Pointcut("excution(* soundsystem.CompactDisk.playTrack(int))"+"&& args(trackNumber)")
+public void countTrack(int trackNumber){ }
+
+//定义切面
+#Before("countTrack(trackNumber)")
+public void trackPlayed(int trackNumber){
+    ... //通知方法逻辑
+}
+```
+
+45. 由于Java不是动态语言（ruby、groovy等语言具有开放类的理念，它可以不用直接修改对象或类的定义就能为对象或类添加新的功能），所以一旦类编译完成就不能再为该类添加新的功能。但我们可以通过AOP的方式为现有类添加额外的功能。
+
+46. 
