@@ -58,7 +58,9 @@
 
 7. 通过路径变量和查询参数的形式跨重定向传递数据是很简单直接的方式，但它也有一定的限制。它只能用来发送简单的值，如String和数字的值。在URL中，并没有办法发送更为复杂的值，但这正是flash属性能够提供帮助的领域。实际上，Spring也认为将跨重定向存活的数据放到**会话**中是一个很不错的方式。但是，Spring认为我们并不需要管理这些数据，相反，Spring提供了将数据发送为flash属性（flashattribute）的功能。按照定义，flash属性会一直携带这些数据直到下一次请求，然后才会消失。
 
-8. **流程执行器（flow executor ）**就是用来驱动流程的执行。当用户进入到一个流程时，流程执行器会为该用户创建并启动一个流程执行器的实例。当流程暂停时（例如为用户展示视图时），流程执行器会在用户执行操作后恢复流程。在Spring中，``` <flow:flow-executor> ```元素可以创建一个流程执行器：```<flow:flow-executor id="flowExecutor" />```尽管流程执行器负责创建和执行流程，但它并不负责加载流程定义。这个要由流程注册表（flow registry）负责，下面会创建它。
+***
+
+8. ** 流程执行器（flow executor ）**就是用来驱动流程的执行。当用户进入到一个流程时，流程执行器会为该用户创建并启动一个流程执行器的实例。当流程暂停时（例如为用户展示视图时），流程执行器会在用户执行操作后恢复流程。在Spring中，``` <flow:flow-executor> ```元素可以创建一个流程执行器：```<flow:flow-executor id="flowExecutor" />```尽管流程执行器负责创建和执行流程，但它并不负责加载流程定义。这个要由流程注册表（flow registry）负责，下面会创建它。
 
 
 9. 流程注册表的工作就是加载流程定义，并让流程执行器可以使用它们。可以在Spring中使用```<flow:flow-registry>```进行配置：
@@ -109,4 +111,231 @@
 - 4、Flash      	-->流程开始时创建，流程结束时销毁。在视图状态解析后，才会被清除
 - 5、View 	        -->进入视图状态时创建，退出这个状态时销毁，只在视图状态内可见
 
-15. 
+***
+
+15. Spring Security是为基于Spring的应用程序提供声明式安全保护的安全性框架。Spring Security提供了完整的安全性解决方案，它能够在Web请求级别和方法调用级别处理身份认证和授权。因为基于Spring框架，所以Spring Security充分利用了依赖注入和面向切面的技术。Spring Security从两个角度来解决安全性问题。它使用Servlet规范中的Filter保护Web请求并限制URL级别的访问。Spring Security还能够使用Spring AOP保护方法调用—借助于对象代理和使用通知，能够确保只有具备适当权限的用户才能访问安全保护的方法。
+
+16. 为了让Spring Security满足我们应用的需要，还需要再添加一点配置。具体来讲，我们需要：
+- 配置用户储存；
+- 指定哪些请求需要认证，哪些请求不需要认证，以及所需要的权限；
+- 提供一个自定义的登录页面，替代原来简单的默认登录页
+
+17. 我们可以通过重载WebSecurityConfigurerAdapter的三个configure()方法来配置Web安全性，这个过程中会使用传递进来的参数设置行为。下表描述了这三个方法。
+|方法|描述|
+|---|---|
+|configure(WebSecurity)|通过重载，配置Spring Security的Filter链|
+|configure(HttpSecurity)|通过重载，配置如何通过拦截器保护请求|
+|configure(AuthenticationManagerBuilder)|通过重载，配置user-detail服务|
+
+18. 使用基于内存的用户存储
+```
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.inMemoryAuthentication()  // 启动内存用户存储
+                .withUser("user").password("password").roles("USER").and()
+                .withUser("admin").password("password").roles("USER","ADMIN");
+    }
+}
+
+方法
+描述
+
+accountExpired(boolean)
+定义账号是否已经过期
+
+accountLocked(boolean)
+定义账号是否已经锁定
+
+and()
+用来连接配置
+
+authorities(GrantedAuthority...)
+授予某个用户一项或多项权限
+
+authorities(List<? extends GrantedAuthority>)
+授予某个用户一项或多项权限
+
+authorities(String...)
+授予某个用户一项或多项权限
+
+credentialsExpired(boolean)
+定义凭证是否已经过期
+
+disabled(boolean)
+定义账号是否已经被禁用
+
+password(String)
+定义用户的密码
+
+roles(String...)
+授予某个用户一项或多项角色
+
+```
+
+19. 基于数据库表进行认证.用户数据通常会存储在关系型数据库中，并通过JDBC进行访问。为了配置Spring Security使用以JDBC为支撑的用户存储，我们可以使用jdbcAuthentication()方法，所需的最少配置如下所示：
+```
+@Autowired
+private DataSource dataSource;
+
+/**
+    * 配置Spring Security的Filter链
+    * @param auth
+    * @throws Exception
+    */
+@Override
+protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    auth.jdbcAuthentication()
+            .dataSource(dataSource);
+}
+```
+
+20. 这里唯一的问题在于如果密码明文存储的话，会很容易收到黑客的窃取。但是，如果数据库中的密码进行了转码的话，那么认证就会失败，因为它与用户提交的明文密码并不匹配。
+```
+@Override
+protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    auth.jdbcAuthentication()
+            .dataSource(dataSource)
+            .usersByUsernameQuery(
+                    "select username, password,  true " +
+                    "from Spitter where username=?")
+            .authoritiesByUsernameQuery(
+                    "select username, 'ROLE_USER' from Spitter where username=?")
+            .passwordEncoder(new StandardPasswordEncoder("53cr3t"));
+}
+
+
+//不管你使用哪一个密码转码器，都需要理解的一点是，数据库中的密码是永远不会解码的。所采取的策略与之相反，用户在登录时输入的密码会按照相同的算法进行转码，然后再在数据库中已经转码过的密码进行对比。这个对比是在PasswordEncoder的matches()方法中进行的。
+```
+
+21. 配置自定义的用户服务。假设我们需要认证的用户存储在非关系型数据库中，如Mongo或Neo4j，在这种情况下，我们需要提供一个自定义的UserDetailsService接口实现。UserDetailsService接口非常简单：
+```
+public interface UserDetailsService {
+UserDetails loadUserByUsername(String username) 
+                                    throws UsernameNotFoundException;
+}
+```
+
+22. 在任何应用中，并不是所有的请求都需要同等程度地保护。有些请求需要认证，而另一些可能并不需要。有些请求可能只有具备特定权限的用户才能访问，没有这些权限的用户会无法访问。对每个请求进行细粒度安全性控制的关键在于重载configure(HttpSecurity)方法。如下的代码片段展现了重载的configure(HttpSecurity)方法，它为不同的URL路径有选择地应用安全性：
+```
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+    http
+        .authorizeRequests()
+            .antMatchers("/spitter/me").authenticated()
+            .antMatchers(HttpMethod.POST, "/spittles").authenticated()
+            .anyRequest().permitAll();
+}
+```
+
+23. 除了authenticated()和permitAll()方法以外，还有其他的一些方法能够用来定义该如何保护请求。下表描述了所有可用的方案:
+|方法|能够做什么|
+|---|---|
+|access(String)|如果给定的SpEL表达式计算结果为true，就允许访问|
+|anonymous()|允许匿名用户访问|
+|authenticated()|允许认证过的用户访问|
+|denyAll()|无条件拒绝所有访问|
+|fullyAuthenticated()|如果用户是完整认证的话（不是通过Remember-me功能认证的），就允许访问|
+|hasAnyAuthority(String...)|如果用户具备给定权限中的某一个的话，就允许访问|
+|hasAnyRole(String...)|如果用户具备给定角色中的某一个的话，就允许访问|
+|hasAuthority(String)|如果用户具备给定权限的话，就允许访问|
+|hasIpAddress(String)|如果请求来自给定IP地址的话，就允许访问|
+|hasRole(String)|如果用户具备给定角色的话，就允许访问|
+|not()|对其他访问方法的结果求反|
+|permitAll()|无条件允许访问|
+|rememberMe()|如果用户是通过Remember-me功能认证的，就允许访问|
+
+24. 使用Spring表达式进行安全保护,借助access()方法，我们也可以将SpEL作为声明访问限制的一种方式。例如，如下就是使用SpEL表达式来声明具有“ROLE_SPITTER”角色才能访问“/spitter/me”URL:
+```
+.antMatchers("/spitter/me").access("hasRole('ROLE_SPITTER')")
+
+安全表达式
+计算结果
+
+authentication
+用户的认证对象
+
+denyAll
+结果始终为false
+
+hasAnyRole(list of roles)
+如果用户被授予了列表中任意的指定角色，结果为true
+
+hasRole(role)
+如果用户被授予了指定的角色，结果为true
+
+hasIpAddress(IPAddress)
+如果请求来自指定的IP的话，结果为true
+
+isAnonymous()
+如果当前用户为匿名用户，结果为true
+
+isAuthenticated()
+如果当前用户进行了认证的话，结果为true
+
+isFullAuthenticated()
+如果当前用户进行了完整认证的话（不是用过Remember-me功能进行的认证），结果为true
+
+isRememberMe()
+如果当前用户是通过Remember-me自动认证的话，结果为true
+
+permitAll
+结果始终为true
+
+principal
+用户的principal对象
+```
+
+25. 强制通道的安全性,使用HTTP提交数据是一件具有风险的事情。通过HTTP发送的数据没有经过加密，黑客就有机会拦截请求并且能够看到他们想看的数据。这就是为什么敏感信息要通过HTTPS来加密发送的原因。为了保证注册表单的数据通过HTTPS传送，我们可以在配置中添加requiresChannel() 方法，如下所示：
+```
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+    http.authorizeRequests()
+            .antMatchers("/spitter/me").hasRole("SPITTER")
+            .antMatchers(HttpMethod.POST, "/spittles").hasRole("SPITTER")
+            .anyRequest().permitAll()
+            .and() 
+            .requiresChannel()
+            .antMatchers("/spitter/form").requiresSecure();   // 需要 HTTPS
+    }
+```
+26. 防止跨站请求伪造,当一个POST请求提交到“/spittles”上，SpittleController将会为用户创建一个新的Spittle对象。但是如果这个POST请求来源于其他站的话，这就是跨站请求伪造（cross-site request forgery，CSRF）的一个简单样例。简单来讲，如果一个站点欺骗用户提交请求到其他服务器的话，就会发生CSRF攻击，这可能会带来消极的后果。
+
+27. 启用HTTP Basic认证
+```
+ @Override
+protected void configure(HttpSecurity http) throws Exception {
+    http.formLogin()
+            .loginPage("/login")// 如果不设置，则默认为/login
+            .and()
+            .httpBasic()
+                .realmName("Spittr")
+            .and()
+    ...
+}
+//注意，和前面一样，在configure()方法中，通过调用and()方法来将不同的配置指令连接在一起。
+```
+
+28. 启用Remember-me功能
+```
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+    http.formLogin()
+            .loginPage("/login")// 如果不设置，则默认为/login
+            .and()
+            .rememberMe()
+                .tokenValiditySeconds(2419200)
+                .key("spittrKey"); // cookie中的私钥
+}
+//
+```
+
+29. 退出
+```
+<a href="<c:url value="/logout" />">Logout</a>
+
+//当用户点击这个链接的时候，会发起对“/logout”的请求，这个请求会被Spring Security的LogoutFilter所处理。用户会退出应用，所有Remember-me token都会被清除掉。在退出完成后，用户浏览器将会重定向“/login?logout”，从而允许用户进行再次登录。
+```
