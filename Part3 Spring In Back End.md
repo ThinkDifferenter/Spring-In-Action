@@ -99,7 +99,58 @@ public class DataSourceConfig {
 }
 ```
 
-10. 
+10. JdbcTemplate主要提供以下五类方法：
+- execute方法：可以用于执行任何SQL语句，一般用于执行DDL语句
+- update方法及batchUpdate方法：update方法用于执行新增、修改、删除等语句；batchUpdate方法用于执行批处理相关语句**
+- query方法及queryForXXX方法：用于执行查询相关语句
+- call方法：用于执行存储过程、函数相关语句
 
+11. 数据状态相关概念：
+- 瞬时状态：在程序运行的时候，有些数据保存在内存中，当程序退出后，这些数据就不复存在了，称这些数据的状态是瞬时的。
+- 持久状态：数据以文件形式保存在辅存中，这样，程序退出后，数据依然存在，这种状态称之为持久的。
+- 持久化 ：即在程序中的瞬时状态和持久状态之间转换的机制。
+实际上，我们通常所说的持久化，一般指的持久化数据到数据库中。
 
+12. 数据库的几个特性：
+- 延迟加载（ Lazy loading ）：随着我们的对象关系变得越来越复杂，有时候我们并不希望立即获取完整的对象间关系。举一个典型的例子，假设我们在查询一组 PurchaseOrder 对象，而每个对象中都包含一个 LineItem 对象集合。如果我们只关心 PurchaseOrder 的属性，那查询出 LineItem 的数据就毫无意义。而且这可能是开销很大的操作。延迟加载允许我们只在需要的时候获取数据。
+- 预先抓取（ Eager fetching ）：这与延迟加载是相对的。借助于预先抓取，我们可以使用一个查询获取完整的关联对象。如果我们需要 PurchaseOrder 及其关联的 LineItem 对象，预先抓取的功能可以在一个操作中将它们全部从数据库中取出来，节省了多次查询的成本。
+- 级联（ Cascading ）：有时，更改数据库中的表会同时修改其他表。回到我们订购单的例子中，当删除 Order 对象时，我们希望同时在数据库中删除关联的 LineItem 一些可用框架提供了上述服务，这些服务的通用名称是对象 / 关系映射（ object-relational mapping ， ORM ）。在持久层使用 ORM 工具，可以节省数千行的代码和大量的开发时间。 ORM 工具能够把你的注意力从容易出错的 SQL 代码转向如何实现应用程序的真正需求。
 
+13. 当创建Repository实现的时候， Spring Data会检查Repository接口的所有方法， 解析方法的名称， 并基于被持久化的对象来试图推测方法的目的。 本质上， Spring Data定义了一组小型的领域特定语言（domain-specific language ， DSL） ， 在这里， 持久化的细节都是通过Repository方法的签名来描述的
+
+14. Repository方法的命名遵循模式：查询动词、主题、断言
+- Spring Data允许在方法名中使用四种动词： get、 read、 find和count。 其中， 动词get、 read和find是同义的， 这三个动词对应的Repository方法都会查询数据并返回对象。 而动词count则会返回匹配对象的数量， 而不是对象本身；
+- Repository方法的主题是可选的。 它的主要目的是让你在命名方法的时候， 有更多的灵活性。对于大部分场景来说， 主题会被省略掉。在省略主题的时候， 有一种例外情况。 如果主题的名称以Distinct开头的话， 那么在生成查询的时候会确保所返回结果集中不包含重复记录。
+- 断言是方法名称中最为有意思的部分， 它指定了限制结果集的属性。注意， 参数的名称是无关紧要的， 但是它们的顺序必须要与方法名称中的操作符相匹配。
+
+15. 如果所需的数据无法通过方法名称进行恰当地描述， 那么我们可以使用@Query注解， 为Spring Data提供要执行的查询。 对于findAllGmailSpitters()方法， 我们可以按照如下的方式来使用@Query注解：
+```
+@Query("update User bean set bean.recommend=?2,bean.birthDate=?3 where bean.id=?1")
+public void recommended(Integer id,Integer recommend,Date birth);
+```
+对于Spring Data JPA的接口来说， @Query是一种添加自定义查询的便利方式。 但是， 它仅限于单个JPA查询。 
+
+16. 有些数据具有明显的关联关系， 文档型数据库并没有针对存储这样的数据进行优化。 例如， 社交网络表现了应用中不同的用户之间是如何建立关联的， 这种情况就不适合放到文档型数据库中。 在文档数据库中存储具有丰富关联关系的数据也并非完全不可能， 但这样做的话， 你通常会发现遇到的挑战要多于所带来的收益。
+
+17. 在使用MongoDB之前，我们首先要配置Spring Data MongoBD ，在Spring配置中添加几个必要的bean。
+- 配置MongoClient，以便于访问MongoDB数据库；
+- 配置MongoTemplate bean，实现基于模板的数据库访问；
+- 启用Spring Data MongoDB的自动化Repository生成功能（不是必须，但强烈推荐）。
+```
+@Configuration
+@EnableMongoRepositories(basePackages = "orders.db")  // 启动MongoDB的Repository功能
+public class MongoConfig {
+    @Bean
+    public MongoClientFactoryBean mongo(){    // MongoClient Bean (MongoFactoryBean已废弃)
+        MongoClientFactoryBean mongo = new MongoClientFactoryBean();
+        mongo.setHost("localhost");
+        return mongo;
+    }
+    @Bean
+    public MongoOperations mongoTemplate(Mongo mongo){  // MongoTemplate bean
+        return new MongoTemplate(mongo, "OrdersDB");
+    }
+}
+```
+
+18. 
