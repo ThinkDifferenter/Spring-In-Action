@@ -80,18 +80,18 @@
 
 12. 转移：转移连接了流程中的状态。流程中除结束状态外的每个状态，至少需要一个转移，这样就知道在状态完成时的走向。一个状态也许有多个转移，分别表示当前状态结束时可以执行的不同路径。
 - 转移是通过```<transition>```元素来定义的，作为其他状态元素```（<action-state>、<view-state>和<subflow-state>）```的子元素。最简单的形式就是```<transition>```元素在流程中指定下一个状态：``` <transition to="customerReady" />  ```,在任意事件中，你可以使用on属性来指定触发转移的事件：
-```
+```java
  <transition on="phoneEntered" to="lookupCustomer"/> 
 ```
 - 全局转移:与其在多个流程状态中重复通用的转移，不如将其作为```<globaltransitions>```的子元素，从而作为全局转移:
-```
+```java
 <global-transitions>
     <transition on="cancel" to="endState" />
 </global-transitions>
 ```
 
 13. 流程数据:当流程从一个状态到达另一个状态时，它会带走一些数据。有时这些数据很快就会被使用，比如直接展示给用户，有时这些数据需要在整个流程中传递并在流程结束时使用。流程数据是保存在变量中的，而变量可以在流程的任意位置进行引用，并且可以以多种方式进行创建。其中最简单的方式就是使用```<var>```元素：
-```
+```java
 使用<var>元素来创建变量
 <var name="customer" class="com.springinaction.pizza.domain.Customer"/>
 
@@ -121,14 +121,15 @@
 - 提供一个自定义的登录页面，替代原来简单的默认登录页
 
 17. 我们可以通过重载WebSecurityConfigurerAdapter的三个configure()方法来配置Web安全性，这个过程中会使用传递进来的参数设置行为。下表描述了这三个方法。
+
 |方法|描述|
-|---|---|
+|:---:|:---:|
 |configure(WebSecurity)|通过重载，配置Spring Security的Filter链|
 |configure(HttpSecurity)|通过重载，配置如何通过拦截器保护请求|
 |configure(AuthenticationManagerBuilder)|通过重载，配置user-detail服务|
 
 18. 使用基于内存的用户存储
-```
+```java
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -177,7 +178,7 @@ roles(String...)
 ```
 
 19. 基于数据库表进行认证.用户数据通常会存储在关系型数据库中，并通过JDBC进行访问。为了配置Spring Security使用以JDBC为支撑的用户存储，我们可以使用jdbcAuthentication()方法，所需的最少配置如下所示：
-```
+```java
 @Autowired
 private DataSource dataSource;
 
@@ -194,7 +195,7 @@ protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 ```
 
 20. 这里唯一的问题在于如果密码明文存储的话，会很容易收到黑客的窃取。但是，如果数据库中的密码进行了转码的话，那么认证就会失败，因为它与用户提交的明文密码并不匹配。
-```
+```java
 @Override
 protected void configure(AuthenticationManagerBuilder auth) throws Exception {
     auth.jdbcAuthentication()
@@ -212,7 +213,7 @@ protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 ```
 
 21. 配置自定义的用户服务。假设我们需要认证的用户存储在非关系型数据库中，如Mongo或Neo4j，在这种情况下，我们需要提供一个自定义的UserDetailsService接口实现。UserDetailsService接口非常简单：
-```
+```java
 public interface UserDetailsService {
 UserDetails loadUserByUsername(String username) 
                                     throws UsernameNotFoundException;
@@ -220,7 +221,7 @@ UserDetails loadUserByUsername(String username)
 ```
 
 22. 在任何应用中，并不是所有的请求都需要同等程度地保护。有些请求需要认证，而另一些可能并不需要。有些请求可能只有具备特定权限的用户才能访问，没有这些权限的用户会无法访问。对每个请求进行细粒度安全性控制的关键在于重载configure(HttpSecurity)方法。如下的代码片段展现了重载的configure(HttpSecurity)方法，它为不同的URL路径有选择地应用安全性：
-```
+```java
 @Override
 protected void configure(HttpSecurity http) throws Exception {
     http
@@ -232,8 +233,9 @@ protected void configure(HttpSecurity http) throws Exception {
 ```
 
 23. 除了authenticated()和permitAll()方法以外，还有其他的一些方法能够用来定义该如何保护请求。下表描述了所有可用的方案:
+
 |方法|能够做什么|
-|---|---|
+|:---:|:---:|
 |access(String)|如果给定的SpEL表达式计算结果为true，就允许访问|
 |anonymous()|允许匿名用户访问|
 |authenticated()|允许认证过的用户访问|
@@ -249,7 +251,7 @@ protected void configure(HttpSecurity http) throws Exception {
 |rememberMe()|如果用户是通过Remember-me功能认证的，就允许访问|
 
 24. 使用Spring表达式进行安全保护,借助access()方法，我们也可以将SpEL作为声明访问限制的一种方式。例如，如下就是使用SpEL表达式来声明具有“ROLE_SPITTER”角色才能访问“/spitter/me”URL:
-```
+``` java
 .antMatchers("/spitter/me").access("hasRole('ROLE_SPITTER')")
 
 安全表达式
@@ -290,7 +292,7 @@ principal
 ```
 
 25. 强制通道的安全性,使用HTTP提交数据是一件具有风险的事情。通过HTTP发送的数据没有经过加密，黑客就有机会拦截请求并且能够看到他们想看的数据。这就是为什么敏感信息要通过HTTPS来加密发送的原因。为了保证注册表单的数据通过HTTPS传送，我们可以在配置中添加requiresChannel() 方法，如下所示：
-```
+```java
 @Override
 protected void configure(HttpSecurity http) throws Exception {
     http.authorizeRequests()
@@ -305,7 +307,7 @@ protected void configure(HttpSecurity http) throws Exception {
 26. 防止跨站请求伪造,当一个POST请求提交到“/spittles”上，SpittleController将会为用户创建一个新的Spittle对象。但是如果这个POST请求来源于其他站的话，这就是跨站请求伪造（cross-site request forgery，CSRF）的一个简单样例。简单来讲，如果一个站点欺骗用户提交请求到其他服务器的话，就会发生CSRF攻击，这可能会带来消极的后果。
 
 27. 启用HTTP Basic认证
-```
+```java
  @Override
 protected void configure(HttpSecurity http) throws Exception {
     http.formLogin()
@@ -320,7 +322,7 @@ protected void configure(HttpSecurity http) throws Exception {
 ```
 
 28. 启用Remember-me功能
-```
+```java
 @Override
 protected void configure(HttpSecurity http) throws Exception {
     http.formLogin()
@@ -334,7 +336,7 @@ protected void configure(HttpSecurity http) throws Exception {
 ```
 
 29. 退出
-```
+```java
 <a href="<c:url value="/logout" />">Logout</a>
 
 //当用户点击这个链接的时候，会发起对“/logout”的请求，这个请求会被Spring Security的LogoutFilter所处理。用户会退出应用，所有Remember-me token都会被清除掉。在退出完成后，用户浏览器将会重定向“/login?logout”，从而允许用户进行再次登录。
