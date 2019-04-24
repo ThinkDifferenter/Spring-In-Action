@@ -15,7 +15,7 @@
 - 连接池的数据源。
 
 5. 使用JNDI数据源：这种配置的好处在于数据源完全可以在应用程序之外进行管理，这样应用程序只需在访问数据库的时候查找数据源就可以了。另外，在应用服务器中管理的数据源通常以池的方式组织，从而具备更好的性能，并且还支持系统管理员对其进行热切换。
-```
+```java
 @Bean
 public JndiObjectFactoryBean dataSource(){
     JndiObjectFactoryBean jndiObjectFB = new JndiObjectFactoryBean();
@@ -31,7 +31,7 @@ public JndiObjectFactoryBean dataSource(){
 - Druid （阿里巴巴的开源项目，https://github.com/alibaba/druid/wiki）
 - c3p0 （http://sourceforge.net/projects/c3p0/）
 - BoneCP (http://jolbox.com/)
-```
+```java
 @Bean
 public DruidDataSource dataSource(){
     DruidDataSource ds = new DruidDataSource();
@@ -49,7 +49,7 @@ public DruidDataSource dataSource(){
 - DriverManagerDataSource：在每个连接请求时都会返回一个新建的连接。与DBCP的BasicDataSource不同，由DriverManagerDataSource提供的连接并没有进行池化管理。
 - SimpleDriverDataSource: 与DriverManagerDataSource的工作方式类似，但是它直接使用JDBC驱动，来解决在特定环境下的类加载问题，这样的环境包括OSGi容器；
 - SingleConnectionDataSource：在每个连接请求时都会返回同一个的连接。尽管SingleConnectionDataSource不是严格意义上的连接池数据源，但是可以将其视为只有一个连接的池。
-```
+```java
 @Bean
 public DataSource dataSource(){
     DriverManagerDataSource ds = new DriverManagerDataSource();
@@ -62,7 +62,7 @@ public DataSource dataSource(){
 ```
 
 8. 使用嵌入式的数据源:嵌入式数据库（embedded database）。嵌入式数据库作为应用的一部分运行，而不是应用连接的独立数据库服务器。对于开发和测试来讲，嵌入式数据库是很好的可选方案。
-```
+```java
 @Bean
 public DataSource dataSource(){
     return new EmbeddedDatabaseBuilder()
@@ -74,7 +74,7 @@ public DataSource dataSource(){
 ```
 
 9. 使用profile选择数据源:我们很可能面临这样一种需求，那就是在某种环境下需要其中一种数据源，而在另外的环境中需要不同的数据源
-```
+```java
 @Configuration
 public class DataSourceConfig {
   
@@ -124,7 +124,7 @@ public class DataSourceConfig {
 - 断言是方法名称中最为有意思的部分， 它指定了限制结果集的属性。注意， 参数的名称是无关紧要的， 但是它们的顺序必须要与方法名称中的操作符相匹配。
 
 15. 如果所需的数据无法通过方法名称进行恰当地描述， 那么我们可以使用@Query注解， 为Spring Data提供要执行的查询。 对于findAllGmailSpitters()方法， 我们可以按照如下的方式来使用@Query注解：
-```
+```java
 @Query("update User bean set bean.recommend=?2,bean.birthDate=?3 where bean.id=?1")
 public void recommended(Integer id,Integer recommend,Date birth);
 ```
@@ -136,7 +136,7 @@ public void recommended(Integer id,Integer recommend,Date birth);
 - 配置MongoClient，以便于访问MongoDB数据库；
 - 配置MongoTemplate bean，实现基于模板的数据库访问；
 - 启用Spring Data MongoDB的自动化Repository生成功能（不是必须，但强烈推荐）。
-```
+```java
 @Configuration
 @EnableMongoRepositories(basePackages = "orders.db")  // 启动MongoDB的Repository功能
 public class MongoConfig {
@@ -153,4 +153,47 @@ public class MongoConfig {
 }
 ```
 
-18. 
+18. 无状态的组件一般来讲扩展性会更好一些，但它们也会更加倾向于一遍遍地问相同的问题。因为它们是无状态的，所以一旦当前的任务完成，就会丢弃掉已经获取到的所有解答，下一次需要相同的答案时，它们就不得不再问一遍这个问题。对于所提出的问题，有时候需要一点时间进行获取或计算才能得到答案。我们可能需要在数据库中获取数据，调用远程服务或者执行复杂的计算。为了得到答案，这就会花费时间和资源。如果问题的答案变更不那么频繁（或者根本不会发生变化），那么按照相同的方式再去获取一遍就是一种浪费了。除此之外，这样做还可能会对应用的性能产生负面的影响。一遍又一遍地问相同的问题,而每次得到的答案都是一样的，与其这样，我们还不如只问一遍并将答案记住，以便稍后再次需要时使用。**缓存（Caching）** 可以存储经常会用到的信息， 这样每次需要的时候， 这些信息都是立即可用的。 在本章中， 我们将会了解到Spring的缓存抽象。 尽管Spring自身并没有实现缓存解决方案， 但是它对缓存功能提供了声明式的支持， 能够与多种流行的缓存实现进行集成。
+
+19. @EnableCaching和```<cache:annotation-driven />```的工作方式是相同的。它们都会创建一个切面（aspect）并触发Spring缓存注解的切点（pointcut）。根据所使用的注解以及缓存的状态，这个切面会从缓存中获取数据，将数据添加到缓存之中或者从缓存中移除某个值。
+
+20. 下表的所有注解都能运用在方法或类上。当将其放在单个方法上时，注解所描述的缓存行为只会运用到这个方法上。如果注解放在类级别的话，那么缓存行为就会应用到这个类的所有方法上。
+|注解|描述|
+|:-----:|:------:|
+|@Cacheable|表明Spring在调用方法之前，首先应该在缓存中查找方法的返回值。如果这个值能够找到，就会返回缓存的值。否则的话，这个方法就会被调用，返回值会放到缓存之中。|
+|@CachePut|表明Spring应该将方法的返回值放到缓存中。在方法的调用前并不会检查缓存，方法始终都会被调用|
+|@CacheEvict|表明Spring应该在缓存中清除一个或多个条目|
+|@Caching|这是一个分组的注解，能够同时应用多个其他的缓存注解|
+
+21. @Cacheable和@CachePut提供了两个属性用以实现条件化缓存：unless和condition，表面上来看，unless和condition属性做的是相同的事情。但是，这里有一点细微的差别。unless属性只能阻止将对象放进缓存，但是这个方法调用的时候，依然会去缓存中进行查找，如果找到了匹配的值，就会返回找到的值。与之不同，如果condition的表达式计算结果为false，那么在这个方法调用的过程中，缓存是被禁用的。就是说，不会去缓存进行查找，同时返回值也不会放进缓存中。
+
+22. 配置将缓存条目存储在Redis服务器的缓存管理器
+```java
+@Configuration
+@EnableCaching   // 启用缓存
+public class CachingConfig {
+
+    @Bean
+    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory){
+        return RedisCacheManager.create(redisConnectionFactory);
+    }
+
+    @Bean
+    public JedisConnectionFactory jedisConnectionFactory() {
+        JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
+        jedisConnectionFactory.afterPropertiesSet();
+        return jedisConnectionFactory;
+    }
+
+    @Bean
+    public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        redisTemplate.afterPropertiesSet();
+        return redisTemplate;
+    }  
+}
+```
+
+
+
