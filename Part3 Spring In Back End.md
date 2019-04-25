@@ -197,5 +197,58 @@ public class CachingConfig {
 }
 ```
 
+***
 
+23. 在Spring Security中实现方法级安全性的最常见办法是使用特定的注解，将这些注解应用到需要保护的方法上，Spring Security提供了三种不同的安全注解：
+- Spring Security自动的@Security注解；
+- JSR-250的@RolesAllowed注解；
+- 表达式驱动的注解，包括@PreAuthorize、@PostAuthorize、@PreFilter和@PostFilter。
 
+24. 使用@Secured注解限制方法调用
+```java 
+// 开启方法保护
+@Configuration
+@EnableGlobalMethodSecurity(securedEnabled = true)
+public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration{
+}
+
+//保护方法
+@Secured("ROLE_SPITTER")
+public void addSpittle(Spittle spittle) {
+    // ...
+}
+// @Secured注解会使用一个String数组作为参数。每个String值是一个权限，调用这个方法至少需要具备其中的一个权限。
+// 通过传递进来ROLE_SPITTER，我们告诉Spring Security只允许具有ROLE_SPITTER权限的认证用户才能调用addSpittle() 方法。
+
+//多个角色
+@Secured({"ROLE_SPITTER", "ROLE_ADMIN"})
+public void addSpittle(Spittle spittle) {
+    // ...
+}
+
+//如果传递给@Secured多个权限值，认证用户必须至少具备其中的一个才能进行方法的调用。
+```
+
+25. 在Spring Security中使用JSR-250的@RolesAllowed注解
+```java
+// 开启方法保护
+@Configuration
+@EnableGlobalMethodSecurity(jsr250Enabled = true)
+public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration{
+}
+
+//保护方法
+@RolesAllowed("ROLE_SPITTER")
+public void addSpittle(Spittle spittle) {
+    // ...
+}
+```
+
+26. 使用表达式实现方法级别的安全性。Spring Security 3.0 引入了几个新注解，它们使用SpEL能够在方法调用上实现更有意思的安全性约束。这些注解的值参数中都可以接受一个SpEL表达式。表达式可以是任意合法的SpEL表达式，可能会包含之前篇章所列的Spring Security 对 SpEL的扩展。如果表达式的计算结果为true，那么安全规则通过，否则就会失败。安全规则通过或失败的结果会因为所使用注解的差异而有所不同。下表描述了这些新的注解。
+
+|注解|描述|
+|:---:|:----:|
+|@PreAuthorize|在方法调用之前，基于表达式的计算结果来限制对方法的访问|
+|@PostAuthorize|允许方法调用，但是如果表达式计算结果为false，将抛出一个安全性异常|
+|@PostFilter|允许方法调用，但必须按照表达式来过滤方法的结果|
+|@PreFilter|允许方法调用，但必须在进入方法之前过滤输入值|
