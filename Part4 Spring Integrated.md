@@ -135,7 +135,42 @@ public @ResponseBody Spittle saveSpittle(@RequestBody Spittle spittle) {
 
 25. Java消息服务（Java Message Service , JMS）是一个Java标准，定义了使用消息代理的通用API。Spring通过基于模版的抽象为JMS功能提供了支持，这个模版也就是JmsTemplate。Spring还提供了消息驱动POJO的理念：这是一个简单的Java对象，它能够以异步的方式响应队列或主题上的到达的消息。
 
+26. 在Spring中搭建消息代理
+```xml
+<!-- 我们必须配置JMS连接工厂，让它知道如何连接到ActiveMQ。配置如下： -->
+<bean id="connectionFactory" class="org.apache.activemq.spring.ActiveMQConnectionFactory" 
+p:brokerURL="tcp:localhost:61616" />
 
+<!-- 也可以使用ActiveMQ的命名空间配置 -->
+<amq:connectionFactory id="connectionFactory" brokerURL="tcp://localhost:61616" />
+
+<!-- 下面的<bean>声明定义了一个ActiveMQ队列： -->
+<bean id="queue" class="org.apache.activemq.command.ActiveMQQueue"
+           c:_="spitter.queue" />
+
+<!-- 命名空间配置如下： -->
+<amq:queue id="spittleQueue" physicalName="spitter.queue" />
+
+<!-- 同样，下面<bean>声明定义了一个ActiveMQ主题： -->
+<bean id="topic" class="org.apache.activemq.command.ActiveMQTopic"
+      c:_="spitter.queue" />
+
+<!-- 命名空间配置如下： -->
+<amq:topic id="spittleTopic" physicalName="spitter.topic" />
+```
+
+27. 使用Spring的JMS模版:针对如何消除冗长和重复的JMS代码，Spring给出的解决方案是JmsTemplate。JmsTemplate可以创建连接、获得会话以及发送和接收消息。另外，JmsTemplate可以处理抛出的笨拙的JMSException异常。如果在使用JmsTemplate时抛出JMSException异常，JmsTemplate将捕获该异常，然后抛出一个非检查型异常，该异常是Spring自带的JmsException异常的子类。
+
+28. 使用AMQP实现消息功能:AMQP具有多项JMS所不具备的优势。首先，AMQP为消息定义了线路层的协议，而JMS所定义的是API规范。JMS的API协议能够确保所有的实现都能通过的API来使用，但是并不能保证某个JMS实现所发送的消息能够被另外不同的JMS实现所使用。而AMQP的线路层协议规范了消息的格式，消息在生产者和消费者间传送的时候会遵循这个格式。这个AMQP在互相协作方面就要优于JMS—它不仅能跨不同的AMQP实现，还能跨语言和平台。
+
+29. 相比JMS，AMQP另外一个明显的优势在于它具有更加灵活和透明的消息模型。使用JMS的话，只有两种消息模型可供选择：点对点和发布-订阅。这两种模型在AMQP当然都是可以实现的，但AMQP还能够让我们以其他的多种方式来发送消息，这是通过将消息的生产者与存放消息的队列解耦实现的。AMQP的生产者并不会直接将消息发布到队列中。AMQP在消息的生产者以及传递信息的队列之间引入了一种间接的机制：Exchange。消息的生产者将信息发布到一个Exchange。Exchange会绑定到一个或多个队列上它负责将信息路由到队列上。信息的消费者会从队列中提取数据并进行处理。AMQP定义了四种不同类型的Exchange，每一种都有不同的路由算法，这些算法决定了是否要将信息放到队列中。四种标准的AMQP Exchange如下所示：
+- Direct: 如果消息的routing key与binding的routing key直接匹配的话，消息将会路由到该队列上；
+- Topic: 如果消息的routing key与binding的routing key附和通配符匹配的话，消息将会路由到该队列上；
+- Headers: 如果消息参数表中的头信息和值都与binding参数表中相匹配，消息将会路由到该队列上；
+- Fanout: 不管消息的routing key和参数表和头信息/值是什么，消息将会路由到所有队列上。
+生产者将信息发送给Exchange并带有一个routing key，消费者从队列中获取消息。
+
+30. 
 
 
 
