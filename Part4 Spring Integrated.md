@@ -170,11 +170,41 @@ p:brokerURL="tcp:localhost:61616" />
 - Fanout: 不管消息的routing key和参数表和头信息/值是什么，消息将会路由到所有队列上。
 生产者将信息发送给Exchange并带有一个routing key，消费者从队列中获取消息。
 
-30. 
+***
 
+30. Spring 4.0为WebSocket通信提供了支持，包括：
+- 发送和接收消息的低层级API；
+- 发送和接收消息的高级API；
+- 用来发送消息的模板；
+- 支持SockJS， 用来解决浏览器端、 服务器以及代理不支持WebSocket的问题。
 
+31. 使用Spring的低层级WebSocket API:按照其最简单的形式，WebSocket只是两个应用之间通信的通道。位于WebSocket一端的应用发送消息，另外一端处理消息。因为它是全双工的，所以每一端都可以发送和处理消息。WebSocket通信可以应用于任何类型的应用中，但是WebSocket最常见的应用场景是实现服务器和基于浏览器的应用之间的通信。
 
+32. WebSocket是一个相对比较新的规范。虽然它早在2011年底就实现了规范化，但即便如此，在Web浏览器和应用服务器上依然没有得到一致的支持。Firefox和Chrome早就已经完整支持WebSocket了，但是其他的一些浏览器刚刚开始支持WebSocket。服务器端对WebSocket的支持也好不到哪里去。GlassFish在几年前就开始支持一定形式的WebSocket，但是很多其他的应用服务器在最近的版本中刚刚开始支持WebSocket。即便浏览器和应用服务器的版本都符合要求，两端都支持WebSocket，在这两者之间还有可能出现问题。防火墙代理通常会限制所有除HTTP以外的流量。它们有可能不支持或者（还）没有配置允许进行WebSocket通信。
 
+33. SockJS让我们能够使用统一的编程模型，就好像在各个层面都完整支持WebSocket一样，SockJS在底层会提供备用方案。例如，为了在服务端启用SockJS通信，我们在Spring配置中可以很简单地要求添加该功能。
 
+34. 使用STOMP消息:直接使用WebSocket（或SockJS）就很类似于使用TCP套接字来编写Web应用。因为没有高层级的线路协议（wire protocol），因此就需要我们定义应用之间所发送消息的语义，还需要确保连接的两端都能遵循这些语义。不过，好消息是我们并非必须要使用原生的WebSocket连接。就像HTTP在TCP套接字之上添加了请求-响应模型层一样，STOMP在WebSocket之上提供了一个基于帧的线路格式（frame-based wire format）层，用来定义消息的语义。
 
+35. 在使用Spring和STOMP消息功能的时候，我们有三种方式利用认证用户：
+- @MessageMapping和@SubscribeMapping标注的方法能够使用Principal来获取认证用户；
+- @MessageMapping、@SubscribeMapping和@MessageException方法返回的值能够以消息的形式发送给认证用户；
+- SimpMessagingTemplate能够发送消息给特定用户。
 
+***
+
+36. 使用Spring发送邮件
+- Spring 自带了一个MailSender的实现也就是JavaMailSenderIpml，我们只需要装配这个实现即可。
+- 我们只需要将JavaMailSenderIpml的对象通过@AutoWired注解注入我们发送提供邮件发送服务的Service类，然后在方法中调用即可。
+
+37. 构建丰富内容的Email
+- 添加附件：Spring提供了一个MimeMessageHelper，我们可以通过它构建带附件的Email。我们需要先实例化一个MimeMessgae作为构造器参数传给MimeMessageHelper。然后才能使用它。
+- 发送富文本：同样是使用MimeMessageHelper，只是将它的setText方法的第二个参数设为true。
+
+38. 使用Thymeleaf构建Email
+- 使用SpringTemplateEngine作为Thymeleaf引擎，解析器除了要配置ServletContextTemplateResolver还要配置ClassLoaderTemplateResolver（从类路径解析模板），将这两个解析器注入到SpringTemplateEngine中，通过它的setTemplateResolvers方法。
+- 在方法内要做的第一件事就是创建Thymeleaf Context实例，将模型数据set进去，然后在Thymeleaf视图层可以通过${}取出
+
+***
+
+40. 
