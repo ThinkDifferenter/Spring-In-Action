@@ -207,4 +207,27 @@ p:brokerURL="tcp:localhost:61616" />
 
 ***
 
-40. 
+40. Spring对DI的支持是通过在应用中配置bean属性， 这是一种非常不错的方法。 不过， 一旦应用已经部署并且正在运行， 单独使用DI并不能帮助我们改变应用的配置。JMX这项技术能够让我们管理、 监视和配置应用。使用JMX管理应用的核心组件是托管bean（managed bean， MBean） 。 所谓的MBean就是暴露特定方法的JavaBean， 这些方法定义了管理接口。 JMX规范定义了如下4种类型的MBean：
+- 标准MBean： 标准MBean的管理接口是通过在固定的接口上执行反射确定的， bean类会实现这个接口；
+- 动态MBean： 动态MBean的管理接口是在运行时通过调用DynamicMBean接口的方法来确定的。 因为管理接口不是通过静态接口定义的， 因此可以在运行时改变；
+- 开放MBean： 开放MBean是一种特殊的动态MBean， 其属性和方法只限定于原始类型、 原始类型的包装类以及可以分解为原始类型或原始类型包装类的任意类型；
+- 模型MBean： 模型MBean也是一种特殊的动态MBean， 用于充当管理接口与受管资源的中介。 模型Bean并不像它们所声明的那样来编写。 它们通常通过工厂生成， 工厂会使用元信息来组装管理接口。
+
+41. 为了对MBean的属性和操作获得更细粒度的控制， Spring提供了几种选择， 包括：
+- 通过名称来声明需要暴露或忽略的bean方法；
+- 通过为bean增加接口来选择要暴露的方法；
+- 通过注解标注bean来标识托管的属性和操作。 
+
+42. 通过名称暴露方法
+MBean信息装配器（MBean info assembler） 是限制哪些方法和属性将在MBean上暴露的关键。 其中有一个MBean信息装配器是MethodNameBasedMBean-InfoAssembler。 另一个基于方法名称的装配器是MethodExclusionMBeanInfoAssembler。 这个MBean信息装配器是MethodNameBaseMBeanInfoAssembler的反操作。 它不是指定哪些方法需要暴露为MBean的托管操作， MethodExclusionMBeanInfoAssembler指定了不需要暴露为MBean托管操作的方法名称列表。
+
+43. 使用接口定义MBean的操作和属性 ：Spring的InterfaceBasedMBeanInfoAssembler是另一种MBean信息装配器， 可以让我们通过使用接口来选择bean的哪些方法需要暴露为MBean的托管操作。 InterfaceBasedMBeanInfoAssembler与基于方法名称的装配器很相似， 只不过不再通过罗列方法名称来确定暴
+露哪些方法， 而是通过列出接口来声明哪些方法需要暴露。
+
+44. 使用注解驱动的MBean：Spring还提供了另一种装配器——Metadata-MBeanInfoAssembler， 这种装配器可以使用注解标识哪些bean的方法需要暴露为MBean的托管操作和属性。
+
+45. 在Spring家族中， Spring Boot是令人兴奋（也许我敢说它是改变游戏规则的） 的新项目。 它提供了四个主要的特性， 能够改变开发Spring应用程序的方式： 
+- Spring Boot Starter： 它将常用的依赖分组进行了整合， 将其合并到一个依赖中， 这样就可以一次性添加到项目的Maven或Gradle构建中；
+- 自动配置： Spring Boot的自动配置特性利用了Spring 4对条件化配置的支持， 合理地推测应用所需的bean并自动化配置它们；
+- 命令行接口（Command-line interface， CLI） ： Spring Boot的CLI发挥了Groovy编程语言的优势， 并结合自动配置进一步简化Spring应用的开发；
+- Actuator： 它为Spring Boot应用添加了一定的管理特性。
